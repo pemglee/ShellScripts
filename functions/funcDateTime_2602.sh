@@ -47,4 +47,4 @@ transDateInt2Eu()
     dateMon=${originalDate:4:2}
     dateDay=${originalDate:6:2}
     echo ${dateDay}-${dateMon}-${dateYer}
-s}
+}
