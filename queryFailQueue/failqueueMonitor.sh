@@ -51,10 +51,15 @@ __colid=0
 __rowValue=""
 for tempRow in ${VALUES}
 do
-    __rowValue=${__rowValue}  + tempRow
+    if [[ ${__rowValue} = "" ]]
+    then
+        __rowValue=${tempRow}
+    else
+        __rowValue=${__rowValue}" , "${tempRow}
+    fi
     echo ${__colid}
-    __colid=$(${__colid} + 1)
-    if [[ ${__wholeRow} = ${RowSize} ]]
+    __colid=$((__colid + 1))
+    if [[ ${__colid} = ${RowSize} ]]
     then
         echo ${__rowValue}
         __colid=0
