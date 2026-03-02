@@ -41,5 +41,23 @@ QueryString+=" where fq1.WhenCreated like '${asOfDate}%' "
 #QueryString+=" union select max(fq3.sequencenum) from dmLC_FailQueue fq3 where fq3.externalid = fq1.externalid and fq3.FailQStatus <> 'PRIORVER' ) "
 QueryString+=" and fq1.ExtractorId = '${_adapterID}' and fq1.ExternalType like '${_externaltype}%' and fq1.MonitorAction <> 'RESUBMIT' " 
 QueryString+=" order by fq1.externalid, fq1.sequencenum, fq1.transactionnum "
-
+RowSize=4
 echo ${QueryString}
+
+VALUES=$(queryDB)
+echo ${VALUES}
+
+__colid=0
+__rowValue=""
+for tempRow in ${VALUES}
+do
+    __rowValue=${__rowValue}  + tempRow
+    echo ${__colid}
+    __colid=$(${__colid} + 1)
+    if [[ ${__wholeRow} = ${RowSize} ]]
+    then
+        echo ${__rowValue}
+        __colid=0
+        __rowValue=""
+    fi   
+done
