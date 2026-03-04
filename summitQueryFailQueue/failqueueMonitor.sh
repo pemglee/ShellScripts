@@ -1,8 +1,8 @@
 source /home/summit/env2/etkws_env.sh
 
-source ../functions/funcQueryFile_2602.sh
-source ../functions/funcQueryDB_2602.sh 
-source ../functions/funcDateTime_2602.sh
+source ../ShellPackages/net/edgar/inoutput/funcQueryFile_2602.sh
+source ../ShellPackages/net/edgar/database/oracledb/funcQueryDB_2602.sh 
+source ../ShellPackages/net/edgar/datetime/funcDateTime_2602.sh
 
 #cd /home/summit/WorkSpaces/queryFailQueue/
 
@@ -42,27 +42,57 @@ QueryString+=" where fq1.WhenCreated like '${asOfDate}%' "
 QueryString+=" and fq1.ExtractorId = '${_adapterID}' and fq1.ExternalType like '${_externaltype}%' and fq1.MonitorAction <> 'RESUBMIT' " 
 QueryString+=" order by fq1.externalid, fq1.sequencenum, fq1.transactionnum "
 RowSize=4
-echo ${QueryString}
+#echo ${QueryString}
 
 VALUES=$(queryDB)
-echo ${VALUES}
+#echo ${VALUES}
 
 __colid=0
 __rowValue=""
+nowExtTrdID=""
+preExtTrdID=""
+nowVersion=""
+preVersion=""
+nowFStatus=""
+preFStatus=""
+nowFAction=""
+preFAction=""
 for tempRow in ${VALUES}
 do
-    if [[ ${__rowValue} = "" ]]
+    if [[ ${__colid} = 0 ]]
     then
-        __rowValue=${tempRow}
-    else
-        __rowValue=${__rowValue}" , "${tempRow}
+        nowExtTrdID=${tempRow}
     fi
-    echo ${__colid}
+    if [[ ${__colid} = 1 ]]
+    then
+        nowVersion=${tempRow}
+    fi
+    if [[ ${__colid} = 2 ]]
+    then
+        nowFStatus=${tempRow}
+    fi
+    if [[ ${__colid} = 3 ]]
+    then
+        nowFAction=${tempRow}
+    fi
+
     __colid=$((__colid + 1))
     if [[ ${__colid} = ${RowSize} ]]
     then
+        __rowValue=Trade:${nowExtTrdID},version:${nowVersion},Status:${nowFStatus},Action:${nowFAction}
         echo ${__rowValue}
+
+        if [[ ${nowExtTrdID} = ${preExtTrdID} ]]
+        then
+            echo "Fail Queue Blocked, send Alter Message"
+        fi
+
         __colid=0
         __rowValue=""
-    fi   
+        preExtTrdID=${nowExtTrdID}
+        preVersion=${nowVersion}
+        preFStatus=${nowFStatus}
+        preFAction=${nowFAction}
+        nowExtTrdID=""
+    fi 
 done
